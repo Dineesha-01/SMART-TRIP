@@ -94,6 +94,43 @@ export default function Planner({ destination, user, onSaveSuccess, onOpenAuth }
     return () => clearTimeout(timer);
   }, [selectedPlaces, currentDestination, durationDays, travelersCount, estimatedCostInr, user]);
 
+  const loadPlacesForDestination = useCallback(async (destination) => {
+    if (!destination || !destination.trim()) return;
+
+    setPlacesLoading(true);
+    try {
+      const data = await fetchRealPlaces(destination, selectedCategory);
+      setPlaces(data);
+    } catch {
+      setPlaces([]);
+    } finally {
+      setPlacesLoading(false);
+    }
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    loadPlacesForDestination(currentDestination);
+  }, [currentDestination, loadPlacesForDestination]);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const nextDestination = searchInputVal.trim();
+    if (!nextDestination) return;
+
+    setCurrentDestination(nextDestination);
+    setSearchInputVal(nextDestination);
+  };
+
+  const handleTogglePlace = useCallback((place) => {
+    setSelectedPlaces((prev) => {
+      const isSelected = prev.some((item) => item.id === place.id);
+      if (isSelected) {
+        return prev.filter((item) => item.id !== place.id);
+      }
+      return [...prev, place];
+    });
+  }, []);
+
   const handleSaveTrip = async () => {
     setSaving(true);
     const activeUserId = user ? (user.userId || user.id || 'usr_1') : 'usr_1';

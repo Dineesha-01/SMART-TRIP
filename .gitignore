@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+backend/target/
+frontend/dist/
+frontend/.vite/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+backend/src/main/resources/application-local.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Database / local runtime
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/.mvn/wrapper/maven-wrapper.properties
+backend/apache-maven-3.9.8/
+
+# Temporary files
+*.tmp
+*.temp
