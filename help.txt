@@ -1,0 +1,124 @@
+================================================================================
+          SMARTTRIP PLATFORM — COMPLETE RUNNING & DATABASE GUIDE
+================================================================================
+
+1. SYSTEM ARCHITECTURE SUMMARY
+--------------------------------------------------------------------------------
+• Frontend UI:    React 18 + Vite SPA (Port 5173)
+• Backend API:    Java 17 / Spring Boot 3.x + Spring Security + JWT (Port 8080)
+• Database:       MongoDB (Database: smarttrip_db | Port 27017)
+• AI Engine:      Groq Llama-3.3 70B AI Real History & Route Assistant
+• Maps Engine:    Google Maps API + OpenStreetMap Leaflet / OSRM Routing Engine
+
+--------------------------------------------------------------------------------
+2. PRE-CONFIGURED LOGIN CREDENTIALS & ROLES
+--------------------------------------------------------------------------------
+[A] SUPER ADMIN ACCOUNT (Full System Access, Admin Creation, User Suspension):
+    • Email:    smarttrip@gmail.com
+    • Password: Smarttrip@1234
+    • Role:     ROLE_SUPER_ADMIN
+
+[B] EMPLOYEE ADMIN ACCOUNT (Destination & Support Operations):
+    • Email:    admin@smarttrip.com
+    • Password: Admin@1234
+    • Role:     ROLE_ADMIN
+
+[C] TRAVELLER ACCOUNT:
+    • Register a new account via the app's "Create Account" page
+    • Role: ROLE_TRAVELLER (assigned automatically on registration)
+
+--------------------------------------------------------------------------------
+3. HOW TO RUN THE FRONTEND (PORT 5173)
+--------------------------------------------------------------------------------
+Step 1: Open a terminal / command prompt.
+Step 2: Navigate to the frontend directory:
+        cd c:\Users\HELLO\Downloads\SmartTrip\frontend
+
+Step 3: Start the Vite development server:
+        npm run dev
+        (On Windows PowerShell if execution policy is restricted: cmd /c npm run dev)
+
+Step 4: Open your web browser and navigate to:
+        http://localhost:5173
+
+--------------------------------------------------------------------------------
+4. HOW TO RUN THE SPRING BOOT BACKEND (PORT 8080)
+--------------------------------------------------------------------------------
+Step 1: Open a second terminal / command prompt.
+Step 2: Navigate to the backend directory:
+        cd c:\Users\HELLO\Downloads\SmartTrip\backend
+
+Step 3: Compile and launch the Spring Boot application using Maven Wrapper:
+        cmd /c .\mvnw.cmd spring-boot:run
+
+Step 4: The Spring Boot REST API will start on:
+        http://localhost:8080
+
+--------------------------------------------------------------------------------
+5. FIXING MONGODB COMPASS WIRE VERSION 6 ERROR
+--------------------------------------------------------------------------------
+Error Message:
+"Server at localhost:27017 reports maximum wire version 6, but this version of the Node.js Driver requires at least 8 (MongoDB 4.2)"
+
+Why this happens:
+The installed MongoDB service on your local computer is an older version (MongoDB 3.6 or earlier), whereas newer versions of MongoDB Compass require MongoDB 4.2+.
+
+HOW TO SOLVE:
+
+OPTION A: USE AN OLDER VERSION OF MONGODB COMPASS (COMPASS 1.35 or COMPASS COMMUNITY)
+-------------------------------------------------------------------------------------
+1. Download MongoDB Compass version 1.35.x or lower which supports Wire Version 6.
+2. Connection string: mongodb://localhost:27017/smarttrip_db
+
+OPTION B: USE MONGODB ATLAS CLOUD (RECOMMENDED FOR MODERN MONGODB COMPASS)
+--------------------------------------------------------------------------
+1. Create a free cluster on MongoDB Atlas (https://www.mongodb.com/cloud/atlas).
+2. Get your Atlas connection string (e.g. `mongodb+srv://admin:password@cluster.mongodb.net/smarttrip_db`).
+3. Paste the Atlas connection string in MongoDB Compass -> Click Connect!
+4. In Spring Boot `backend/src/main/resources/application.properties`, update:
+   spring.data.mongodb.uri=mongodb+srv://admin:password@cluster.mongodb.net/smarttrip_db
+
+OPTION C: USE MONGODB SHELL (mongosh) OR VSCODE MONGODB EXTENSION
+-----------------------------------------------------------------
+VS Code MongoDB extension and `mongosh` terminal connect to local MongoDB 3.6/4.0 without wire version errors:
+1. In VS Code, install "MongoDB for VS Code" extension.
+2. Click "Connect with Connection String": mongodb://localhost:27017
+3. Browse `smarttrip_db` collections directly inside VS Code!
+
+--------------------------------------------------------------------------------
+6. HOW TO CHECK & INSPECT THE MONGODB DATABASE
+--------------------------------------------------------------------------------
+• Database Name: smarttrip_db
+• MongoDB URI:   mongodb://localhost:27017/smarttrip_db
+
+METHOD 1: USING VSCODE MONGODB EXTENSION / MONGODB COMPASS
+-----------------------------------------------------------
+1. Connect with Connection String: mongodb://localhost:27017
+2. Select database: smarttrip_db
+3. Click smarttrip_db to inspect collections:
+   - users    (Contains Super Admin, Admin, and Traveller accounts + isBlocked status)
+   - places   (Contains attractions, hotels, restaurants, hospitals, ATMs)
+   - trips    (Contains saved trip itineraries, budgets, and selected places)
+
+METHOD 2: USING MONGODB SHELL (mongosh CLI)
+-------------------------------------------
+1. Open terminal and run MongoDB shell:
+   mongosh "mongodb://localhost:27017"
+
+2. Switch to the SmartTrip database:
+   use smarttrip_db
+
+3. Query records:
+   db.users.find().pretty()
+   db.places.find().pretty()
+   db.trips.find().pretty()
+
+METHOD 3: VERIFYING DATABASE DATA VIA LIVE REST APIs
+-----------------------------------------------------
+• View All Registered Users (Super Admin API):
+  http://localhost:8080/api/v1/admin/users
+
+• View System Stats:
+  http://localhost:8080/api/v1/admin/stats
+
+================================================================================

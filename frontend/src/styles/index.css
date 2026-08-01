@@ -1,0 +1,500 @@
+/* ═══════════════════════════════════════════════════════════════
+   SMARTTRIP — FORMAL CORPORATE DESIGN SYSTEM (SOLID THEME)
+   Clean, Professional, Corporate Slate & Blue Theme with Animations
+═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Sora:wght@400;600;700&display=swap');
+
+/* ─── CSS Custom Properties ─────────────────────────────────── */
+:root {
+  /* Formal Solid Brand Colors */
+  --navy-900:    #0f172a;
+  --navy-800:    #1e293b;
+  --navy-700:    #334155;
+
+  --blue-700:    #1d4ed8;
+  --blue-600:    #2563eb;
+  --blue-500:    #3b82f6;
+  --blue-100:    #dbeafe;
+  --blue-50:     #eff6ff;
+
+  --slate-700:   #334155;
+  --slate-600:   #475569;
+  --slate-500:   #64748b;
+  --slate-200:   #e2e8f0;
+  --slate-100:   #f1f5f9;
+  --slate-50:    #f8fafc;
+
+  --amber-600:   #d97706;
+  --amber-100:   #fef3c7;
+
+  --emerald-600: #059669;
+  --emerald-100: #d1fae5;
+
+  --red-600:     #dc2626;
+  --red-100:     #fee2e2;
+
+  /* Solid Theme Assignments (NO GRADIENTS) */
+  --brand-primary:   #2563eb;
+  --brand-dark:      #0f172a;
+  --brand-accent:    #1d4ed8;
+  --hero-bg:         #0f172a;
+
+  /* Surface Colors */
+  --surface-0:   #ffffff;
+  --surface-1:   #f8fafc;
+  --surface-2:   #f1f5f9;
+  --surface-3:   #e2e8f0;
+
+  /* Text Colors */
+  --text-primary:   #0f172a;
+  --text-secondary: #334155;
+  --text-tertiary:  #64748b;
+  --text-disabled:  #94a3b8;
+  --text-inverse:   #ffffff;
+
+  /* Border Colors */
+  --border-light:  #e2e8f0;
+  --border-medium: #cbd5e1;
+  --border-strong: #94a3b8;
+  --border-blue:   #93c5fd;
+
+  /* Shadows */
+  --shadow-xs:   0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow-sm:   0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+  --shadow-md:   0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lg:   0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --shadow-xl:   0 20px 25px -5px rgba(0, 0, 0, 0.08);
+
+  /* Border Radius */
+  --r-xs:   4px;
+  --r-sm:   6px;
+  --r-md:   8px;
+  --r-lg:   12px;
+  --r-xl:   16px;
+  --r-full: 9999px;
+
+  /* Typography */
+  --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display:  'Sora', 'Inter', sans-serif;
+
+  /* Transitions */
+  --ease-fast: all 0.15s ease-in-out;
+  --ease-base: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─── Reset & Base ──────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--surface-1);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--blue-600);
+  text-decoration: none;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+/* ─── Keyframe Animations ────────────────────────────────────── */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes floatY {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Utility Animation Classes ──────────────────────────────── */
+.animate-fade-in {
+  animation: fadeInUp 0.35s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: fadeInScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-float {
+  animation: floatY 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2.5s infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Staggered Delays for Grid Elements */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+
+/* ─── Layout Containers ─────────────────────────────────────── */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ─── Card Components with Hover Elevation ────────────────────── */
+.card {
+  background: var(--surface-0);
+  border: 1px solid var(--border-light);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
+  animation: fadeInUp 0.35s ease-out forwards;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
+  border-color: var(--blue-600);
+}
+
+.card-elevated {
+  background: var(--surface-0);
+  border: 1px solid var(--border-light);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.35s ease-out forwards;
+}
+
+.card-elevated:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.card-flat {
+  background: var(--surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--r-md);
+  transition: var(--ease-base);
+}
+
+/* ─── Form Controls ─────────────────────────────────────────── */
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 0.85rem;
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.input {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.9rem;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--r-md);
+  background: var(--surface-0);
+  color: var(--text-primary);
+  outline: none;
+  transition: var(--ease-fast);
+}
+
+.input:focus {
+  border-color: var(--blue-600);
+  box-shadow: 0 0 0 3px var(--blue-100);
+}
+
+.form-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+}
+
+/* ─── Buttons ───────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  border-radius: var(--r-md);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: var(--blue-600);
+  color: white;
+}
+.btn-primary:hover {
+  background: var(--blue-700);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.btn-gold {
+  background: var(--navy-900);
+  color: white;
+}
+.btn-gold:hover {
+  background: var(--navy-800);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-medium);
+  color: var(--text-primary);
+}
+.btn-outline:hover {
+  border-color: var(--blue-600);
+  color: var(--blue-600);
+  background: var(--blue-50);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+.btn-ghost:hover {
+  background: var(--surface-2);
+}
+
+.btn-danger {
+  background: #fef2f2;
+  color: var(--red-600);
+  border: 1px solid #fecaca;
+}
+.btn-danger:hover {
+  background: var(--red-600);
+  color: white;
+}
+
+.btn-success {
+  background: #ecfdf5;
+  color: var(--emerald-600);
+  border: 1px solid #a7f3d0;
+}
+
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.78rem;
+}
+
+/* ─── Badges ────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: var(--r-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badge-blue  { background: var(--blue-100);    color: var(--blue-700); }
+.badge-gold  { background: var(--amber-100);   color: #b45309; }
+.badge-gray  { background: var(--surface-2);   color: var(--text-tertiary); }
+.badge-green { background: var(--emerald-100); color: var(--emerald-600); }
+.badge-red   { background: var(--red-100);     color: var(--red-600); }
+
+/* ─── Navigation Tabs ───────────────────────────────────────── */
+.tab-group {
+  display: flex;
+  background: var(--surface-2);
+  padding: 4px;
+  border-radius: var(--r-md);
+  gap: 2px;
+  overflow-x: auto;
+}
+
+.tab-item {
+  flex: 1;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: var(--r-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: var(--ease-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.tab-item.active,
+.tab-item.active-blue {
+  background: var(--blue-600);
+  color: white;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+}
+
+.tab-item.active-gold {
+  background: var(--navy-900);
+  color: white;
+}
+
+/* ─── Filter Chips ──────────────────────────────────────────── */
+.chip {
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--r-sm);
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid var(--border-medium);
+  background: var(--surface-0);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--ease-base);
+}
+.chip:hover { border-color: var(--blue-600); color: var(--blue-600); transform: translateY(-1px); }
+.chip.active { background: var(--blue-600); border-color: var(--blue-600); color: white; }
+
+/* ─── Toast Notifications ───────────────────────────────────── */
+.toast-wrapper {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: var(--navy-900);
+  color: white;
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-xl);
+  min-width: 280px;
+  max-width: 400px;
+  animation: fadeInUp 0.25s ease-out forwards;
+}
+
+.toast-title { font-weight: 700; font-size: 0.85rem; }
+.toast-message { font-size: 0.78rem; color: rgba(255,255,255,0.75); }
+.toast-close { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; }
+
+/* ─── Info Blocks ───────────────────────────────────────────── */
+.info-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--r-md);
+  font-size: 0.85rem;
+}
+.info-block.warning { background: var(--amber-100); color: #92400e; border: 1px solid #fde68a; }
+.info-block.info    { background: var(--blue-50);   color: #1e40af; border: 1px solid var(--blue-100); }
+
+/* ─── Stat Tiles ────────────────────────────────────────────── */
+.stat-tile {
+  padding: 1.1rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-light);
+  background: var(--surface-0);
+  transition: var(--ease-base);
+}
+.stat-tile:hover {
+  transform: translateY(-2px);
+  border-color: var(--blue-600);
+}
+.stat-value { font-size: 1.5rem; font-weight: 800; }
+.stat-label { font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; }
+
+/* ─── Empty State ───────────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+  gap: 0.75rem;
+}
+.empty-state-icon { color: var(--text-tertiary); opacity: 0.4; }
+.empty-state h3 { font-size: 1.15rem; font-weight: 700; }
+.empty-state p { font-size: 0.85rem; color: var(--text-tertiary); max-width: 340px; }
+
+/* ─── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 3px; }
