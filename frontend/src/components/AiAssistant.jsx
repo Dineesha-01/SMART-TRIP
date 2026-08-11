@@ -42,10 +42,7 @@ export default function AiAssistant({ destination, durationDays, selectedPlaces,
 
     try {
       const history = updatedMessages.map((m) => ({ role: m.role, content: m.content }));
-      const aiReply = await queryGroqAi(
-        history,
-        `You are SmartTrip AI, an expert travel guide for ${destination}. Format your answer with clean headings, bold text, and bullet points. Avoid unnecessary intro filler.`
-      );
+      const aiReply = await queryGroqAi(history, destination);
       setMessages((prev) => [
         ...prev,
         { id: `a_${Date.now()}`, role: 'assistant', content: aiReply, isNew: true },
