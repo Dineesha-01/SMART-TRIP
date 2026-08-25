@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -28,7 +29,10 @@ public class AdminController {
 
     @GetMapping("/users")
     public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userRepository.findAll());
+        List<User> users = userRepository.findAll().stream()
+                .peek(u -> u.setPassword(null)) // never expose password hashes, even to admins
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/trips")
@@ -57,12 +61,16 @@ public class AdminController {
             return ResponseEntity.badRequest().body(Map.of("message", "Email address is already registered."));
         }
 
+        String adminPin = (request.getSecretPin() != null && request.getSecretPin().trim().length() >= 4)
+                ? request.getSecretPin().trim()
+                : java.util.UUID.randomUUID().toString().substring(0, 6);
+
         User adminUser = User.builder()
                 .name(request.getName())
                 .username(request.getUsername() != null ? request.getUsername() : request.getEmail().split("@")[0])
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .secretPin("1234")
+                .secretPin(adminPin)
                 .phone(request.getPhone() != null ? request.getPhone() : "+91 99999 88888")
                 .homeCity(request.getHomeCity() != null ? request.getHomeCity() : "SmartTrip HQ")
                 .role("ROLE_ADMIN")
@@ -72,6 +80,7 @@ public class AdminController {
                 .build();
 
         User saved = userRepository.save(adminUser);
+        saved.setPassword(null);
         return ResponseEntity.ok(saved);
     }
 
@@ -111,6 +120,7 @@ public class AdminController {
 
         user.setRole(newRole);
         User updated = userRepository.save(user);
+        updated.setPassword(null);
 
         return ResponseEntity.ok(updated);
     }

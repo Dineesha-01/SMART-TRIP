@@ -4,6 +4,8 @@ import com.smarttrip.dto.AuthDto;
 import com.smarttrip.model.User;
 import com.smarttrip.repository.UserRepository;
 import com.smarttrip.security.JwtTokenProvider;
+
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,7 +25,7 @@ public class AuthController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthDto.AuthResponse> register(@RequestBody AuthDto.RegisterRequest request) {
+    public ResponseEntity<AuthDto.AuthResponse> register(@Valid @RequestBody AuthDto.RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             return ResponseEntity.badRequest().body(
                 AuthDto.AuthResponse.builder()
@@ -42,12 +44,20 @@ public class AuthController {
 
         String userRole = request.getRole() != null ? request.getRole() : "ROLE_TRAVELLER";
 
+                if (request.getSecretPin() == null || request.getSecretPin().trim().length() < 4) {
+            return ResponseEntity.badRequest().body(
+                AuthDto.AuthResponse.builder()
+                    .message("A secret recovery PIN (at least 4 digits) is required.")
+                    .build()
+            );
+        }
+
         User user = User.builder()
                 .name(request.getName())
                 .username(request.getUsername() != null ? request.getUsername() : request.getEmail().split("@")[0])
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .secretPin(request.getSecretPin() != null ? request.getSecretPin() : "1234")
+                .secretPin(request.getSecretPin().trim())
                 .phone(request.getPhone())
                 .homeCity(request.getHomeCity() != null ? request.getHomeCity() : "New York")
                 .role(userRole)
@@ -57,7 +67,7 @@ public class AuthController {
                 .build();
 
         User savedUser = userRepository.save(user);
-        String token = jwtTokenProvider.generateToken(savedUser.getEmail(), savedUser.getId());
+        String token = jwtTokenProvider.generateToken(savedUser.getEmail(), savedUser.getId(), savedUser.getRole());
 
         return ResponseEntity.ok(
             AuthDto.AuthResponse.builder()
@@ -74,7 +84,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthDto.AuthResponse> login(@RequestBody AuthDto.LoginRequest request) {
+    public ResponseEntity<AuthDto.AuthResponse> login(@Valid @RequestBody AuthDto.LoginRequest request) {
         String identifier = request.getUsernameOrEmail();
         Optional<User> userOpt = userRepository.findByEmailOrUsername(identifier, identifier);
 
@@ -91,8 +101,8 @@ public class AuthController {
             }
 
             if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-                String token = jwtTokenProvider.generateToken(user.getEmail(), user.getId());
                 String role = user.getRole() != null ? user.getRole() : "ROLE_TRAVELLER";
+                String token = jwtTokenProvider.generateToken(user.getEmail(), user.getId(), role);
                 return ResponseEntity.ok(
                     AuthDto.AuthResponse.builder()
                         .token(token)
@@ -116,7 +126,7 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<AuthDto.AuthResponse> forgotPassword(@RequestBody AuthDto.ForgotPasswordRequest request) {
+    public ResponseEntity<AuthDto.AuthResponse> forgotPassword(@Valid @RequestBody AuthDto.ForgotPasswordRequest request) {
         String identifier = request.getUsernameOrEmail();
         Optional<User> userOpt = userRepository.findByEmailOrUsername(identifier, identifier);
 

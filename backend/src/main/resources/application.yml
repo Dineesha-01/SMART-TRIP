@@ -14,14 +14,6 @@ spring:
 
 app:
   jwt:
-<<<<<<< Updated upstream
-    secret: 9a6f8b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a
-    expiration-ms: 86400000 
-||||||| Stash base
-    secret: 9a6f8b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a
-    expiration-ms: 86400000 # 24 Hours
-
-=======
     # Set the JWT_SECRET environment variable in your shell before running the app.
     secret: ${JWT_SECRET:CHANGE_ME_dev_only_do_not_use_in_production}
     expiration-ms: 86400000
@@ -29,8 +21,6 @@ app:
     api-key: ${GROQ_API_KEY:}
     endpoint: https://api.groq.com/openai/v1/chat/completions
     model: llama-3.3-70b-versatile
-
->>>>>>> Stashed changes
 logging:
   level:
     root: INFO
