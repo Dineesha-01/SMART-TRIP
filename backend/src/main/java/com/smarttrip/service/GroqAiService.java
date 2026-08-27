@@ -1,6 +1,8 @@
 package com.smarttrip.service;
 
 import com.smarttrip.dto.AiDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -19,6 +21,7 @@ import java.util.regex.Pattern;
 @Service
 public class GroqAiService {
 
+    private static final Logger log = LoggerFactory.getLogger(GroqAiService.class);
     private static final Pattern JSON_ARRAY_PATTERN = Pattern.compile("\\[\\s*\\{[\\s\\S]*}\\s*]");
 
     private final RestTemplate restTemplate = new RestTemplate();
@@ -64,6 +67,7 @@ public class GroqAiService {
             ResponseEntity<Map> response = restTemplate.postForEntity(endpoint, new HttpEntity<>(body, headers), Map.class);
             return extractContent(response.getBody());
         } catch (RestClientException ex) {
+            log.error("Groq API call failed", ex);
             throw new IllegalStateException("Could not reach AI service: " + ex.getMessage(), ex);
         }
     }

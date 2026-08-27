@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import heroImage from '../assets/hero1.jpg';
 import { MapPin, Sparkles, Route, DollarSign, ShieldCheck, Clock, ArrowRight, TrendingUp, Globe, History, Trash2 } from 'lucide-react';
 import { loadGoogleMaps } from '../services/googlePlaces';
 import { useToast } from '../components/Toast';
@@ -205,14 +206,23 @@ export default function Home({ onSelectDestination }) {
 
       {/* Hero Section */}
       <section style={{
-        background: 'var(--navy-900)',
+        position: 'relative',
         borderRadius: 'var(--r-xl)',
         padding: '4rem 2rem 3.5rem',
         textAlign: 'center',
         color: 'white',
         border: '1px solid var(--navy-800)',
+        overflow: 'hidden',
+        backgroundImage: `url(${heroImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(180deg, rgba(15,23,42,0.55) 0%, rgba(15,23,42,0.4) 45%, rgba(15,23,42,0.6) 100%)',
+        }} />
+        <div style={{ maxWidth: '800px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
             background: 'var(--navy-800)',
