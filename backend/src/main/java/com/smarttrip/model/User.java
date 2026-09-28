@@ -28,8 +28,11 @@ public class User {
     private String avatarUrl;
     private String role; 
     
-    @Builder.Default
+        @Builder.Default
     private Boolean isBlocked = false;
+
+    @Builder.Default
+    private String preferredLanguage = "ENGLISH"; // ENGLISH, TELUGU, HINDI
 
     private List<String> travelPreferences;
     private String authProvider;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MapPin, Route, DollarSign, CloudSun, Save, Check, Search, AlertCircle, Calendar, Navigation, CheckSquare } from 'lucide-react';
 import InteractiveMap from '../components/InteractiveMap';
 import RouteOptimizer from '../components/RouteOptimizer';
@@ -15,6 +16,7 @@ import { fetchRealPlaces } from '../services/mapService';
 import { useToast } from '../components/Toast';
 
 export default function Planner({ destination, user, onSaveSuccess, onOpenAuth }) {
+  const { t } = useTranslation();
   const [currentDestination, setCurrentDestination] = useState(destination || 'Jaipur');
   const [searchInputVal, setSearchInputVal] = useState(destination || 'Jaipur');
   const [plannerTab, setPlannerTab] = useState('places');
@@ -22,7 +24,6 @@ export default function Planner({ destination, user, onSaveSuccess, onOpenAuth }
   const [placesLoading, setPlacesLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedPlaces, setSelectedPlaces] = useState(() => {
-    // Restore persistent selected places from localStorage on initial render
     try {
       const stored = localStorage.getItem(`smarttrip_selected_places_${destination || 'Jaipur'}`);
       return stored ? JSON.parse(stored) : [];
@@ -44,8 +45,6 @@ export default function Planner({ destination, user, onSaveSuccess, onOpenAuth }
     if (destination) {
       setCurrentDestination(destination);
       setSearchInputVal(destination);
-
-      // Restore selected places for destination
       try {
         const stored = localStorage.getItem(`smarttrip_selected_places_${destination}`);
         if (stored) setSelectedPlaces(JSON.parse(stored));
@@ -53,14 +52,11 @@ export default function Planner({ destination, user, onSaveSuccess, onOpenAuth }
     }
   }, [destination]);
 
-  // Real-time Automatic MongoDB Database Sync / Auto-Save Effect
   useEffect(() => {
-    // 1. LocalStorage backup
     try {
       localStorage.setItem(`smarttrip_selected_places_${currentDestination}`, JSON.stringify(selectedPlaces));
     } catch { /* ignore */ }
 
-    // 2. MongoDB Real-time Auto-Save
     const activeUserId = user ? (user.userId || user.id || 'usr_1') : 'usr_1';
     const timer = setTimeout(async () => {
       const tripPayload = {
@@ -95,10 +91,8 @@ export default function Planner({ destination, user, onSaveSuccess, onOpenAuth }
     return () => clearTimeout(timer);
   }, [selectedPlaces, currentDestination, durationDays, travelersCount, estimatedCostInr, user]);
 
-  // Recalculate dynamic cost whenever selectedPlaces, durationDays, or travelersCount changes
   useEffect(() => {
     let base = 8000 + (durationDays * 2200) + (travelersCount * 1500);
-
     selectedPlaces.forEach((p) => {
       if (p.category === 'Hotel') {
         base += 3800 * durationDays;
@@ -110,24 +104,17 @@ export default function Planner({ destination, user, onSaveSuccess, onOpenAuth }
         base += 500;
       }
     });
-
     setEstimatedCostInr(base);
   }, [selectedPlaces, durationDays, travelersCount]);
 
   const loadRealPlaces = useCallback(async (destName) => {
     const target = destName || currentDestination;
     if (!target) return;
-
     setPlacesLoading(true);
     setPlaces([]);
-
     try {
       const realPlaces = await fetchRealPlaces(target, 'All');
-      if (realPlaces && realPlaces.length > 0) {
-        setPlaces(realPlaces);
-      } else {
-        setPlaces([]);
-      }
+      setPlaces(realPlaces && realPlaces.length > 0 ? realPlaces : []);
     } catch (err) {
       console.warn('Place fetch notice:', err);
       setPlaces([]);
@@ -143,8 +130,7 @@ export default function Planner({ destination, user, onSaveSuccess, onOpenAuth }
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (!searchInputVal || !searchInputVal.trim()) return;
-    const dest = searchInputVal.trim();
-    setCurrentDestination(dest);
+    setCurrentDestination(searchInputVal.trim());
   };
 
   const handleTogglePlace = (place) => {
@@ -188,20 +174,19 @@ export default function Planner({ destination, user, onSaveSuccess, onOpenAuth }
 
       if (res && res.ok) {
         setSavedSuccess(true);
-        if (toast) toast.success('Trip Saved!', `Your trip to ${currentDestination} has been persisted to MongoDB database.`);
+        if (toast) toast.success(t('planner.toastSavedTitle'), t('planner.toastSavedMsg', { destination: currentDestination }));
         if (onSaveSuccess) onSaveSuccess(tripPayload);
         setTimeout(() => setSavedSuccess(false), 3000);
       } else {
-        if (toast) toast.error('Save Error', 'Backend server returned an error during save.');
+        if (toast) toast.error(t('planner.toastSaveErrorTitle'), t('planner.toastSaveErrorServer'));
       }
     } catch {
-      if (toast) toast.error('Save Error', 'Unable to reach backend server on http://localhost:8080.');
+      if (toast) toast.error(t('planner.toastSaveErrorTitle'), t('planner.toastSaveErrorNetwork'));
     } finally {
       setSaving(false);
     }
   };
 
-  /* Render Full Page Place Details view if selected */
   if (selectedPlaceDetail) {
     return (
       <PlaceDetails
@@ -217,34 +202,30 @@ export default function Planner({ destination, user, onSaveSuccess, onOpenAuth }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '3rem' }}>
 
-      {/* Header Bar */}
       <div className="card-elevated" style={{ padding: '1.4rem 1.6rem', background: 'white' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.15rem' }}>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
             <div style={{
-              width: '42px', height: '42px',
-              background: 'var(--navy-900)',
-              borderRadius: 'var(--r-md)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'white', flexShrink: 0,
+              width: '42px', height: '42px', background: 'var(--navy-900)', borderRadius: 'var(--r-md)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0,
             }}>
               <MapPin size={22} />
             </div>
             <div>
               <h1 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--navy-900)' }}>
-                {currentDestination} Trip Planner
+                {t('planner.title', { destination: currentDestination })}
               </h1>
               <div style={{ fontSize: '0.83rem', color: 'var(--text-tertiary)', fontWeight: 500, marginTop: '2px' }}>
                 <span
                   onClick={() => setPlannerTab('selected')}
                   className="badge badge-blue"
                   style={{ marginRight: '0.5rem', cursor: 'pointer' }}
-                  title="Click to view dedicated Selected Places tab"
+                  title={t('planner.viewSelectedTip')}
                 >
-                  {selectedPlaces.length} Places Selected (Auto-Saved to DB ✓)
+                  {t('planner.placesSelectedBadge', { count: selectedPlaces.length })}
                 </span>
-                Est. Cost: <strong style={{ color: 'var(--blue-600)' }}>₹{estimatedCostInr.toLocaleString('en-IN')} INR</strong>
+                {t('planner.estCost')} <strong style={{ color: 'var(--blue-600)' }}>₹{estimatedCostInr.toLocaleString('en-IN')} INR</strong>
               </div>
             </div>
           </div>
@@ -259,7 +240,7 @@ export default function Planner({ destination, user, onSaveSuccess, onOpenAuth }
                   setCurrentDestination(selectedCity);
                   loadRealPlaces(selectedCity);
                 }}
-                placeholder="Search city (e.g. Manali, Goa)..."
+                placeholder={t('planner.searchPlaceholder')}
               />
             </div>
 
@@ -269,34 +250,32 @@ export default function Planner({ destination, user, onSaveSuccess, onOpenAuth }
               disabled={saving}
             >
               {savedSuccess ? <Check size={16} /> : <Save size={16} />}
-              {savedSuccess ? 'Saved to DB!' : 'Save Trip'}
+              {savedSuccess ? t('planner.savedToDb') : t('planner.saveTrip')}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Planner Tabs */}
       <div className="tab-group">
         {[
-          { id: 'places',      label: `Nearby Places (${places.length})`, icon: <MapPin size={15} /> },
-          { id: 'selected',    label: `Selected Places (${selectedPlaces.length})`, icon: <CheckSquare size={15} /> },
-          { id: 'routesearch', label: 'From -> To Route Search', icon: <Navigation size={15} /> },
-          { id: 'schedule',    label: 'Day Schedule', icon: <Calendar size={15} /> },
-          { id: 'route',       label: 'Route & Transport (Bus/Train/Flight)', icon: <Route size={15} /> },
-          { id: 'budget',      label: 'Budget Calculator (₹)', icon: <DollarSign size={15} /> },
-          { id: 'weather',     label: 'Weather & Safety', icon: <CloudSun size={15} /> },
-        ].map((t) => (
+          { id: 'places',      label: t('planner.tabs.places', { count: places.length }), icon: <MapPin size={15} /> },
+          { id: 'selected',    label: t('planner.tabs.selected', { count: selectedPlaces.length }), icon: <CheckSquare size={15} /> },
+          { id: 'routesearch', label: t('planner.tabs.routeSearch'), icon: <Navigation size={15} /> },
+          { id: 'schedule',    label: t('planner.tabs.schedule'), icon: <Calendar size={15} /> },
+          { id: 'route',       label: t('planner.tabs.route'), icon: <Route size={15} /> },
+          { id: 'budget',      label: t('planner.tabs.budget'), icon: <DollarSign size={15} /> },
+          { id: 'weather',     label: t('planner.tabs.weather'), icon: <CloudSun size={15} /> },
+        ].map((tabItem) => (
           <button
-            key={t.id}
-            onClick={() => setPlannerTab(t.id)}
-            className={`tab-item${plannerTab === t.id ? ' active-blue' : ''}`}
+            key={tabItem.id}
+            onClick={() => setPlannerTab(tabItem.id)}
+            className={`tab-item${plannerTab === tabItem.id ? ' active-blue' : ''}`}
           >
-            {t.icon} {t.label}
+            {tabItem.icon} {tabItem.label}
           </button>
         ))}
       </div>
 
-      {/* Places Tab */}
       {plannerTab === 'places' && (
         <InteractiveMap
           destination={currentDestination}
@@ -310,7 +289,6 @@ export default function Planner({ destination, user, onSaveSuccess, onOpenAuth }
         />
       )}
 
-      {/* Selected Places Dedicated Tab */}
       {plannerTab === 'selected' && (
         <SelectedPlacesView
           selectedPlaces={selectedPlaces}
@@ -320,15 +298,10 @@ export default function Planner({ destination, user, onSaveSuccess, onOpenAuth }
         />
       )}
 
-      {/* From -> To Route Search Tab */}
       {plannerTab === 'routesearch' && (
-        <RoutePlanner
-          defaultOrigin="Vijayawada"
-          defaultDestination={currentDestination}
-        />
+        <RoutePlanner defaultOrigin="Vijayawada" defaultDestination={currentDestination} />
       )}
 
-      {/* Schedule Tab */}
       {plannerTab === 'schedule' && (
         <DayScheduleManager
           destination={currentDestination}
@@ -338,15 +311,10 @@ export default function Planner({ destination, user, onSaveSuccess, onOpenAuth }
         />
       )}
 
-      {/* Route & Transport Tab */}
       {plannerTab === 'route' && (
-        <RouteOptimizer
-          destination={currentDestination}
-          selectedPlaces={selectedPlaces}
-        />
+        <RouteOptimizer destination={currentDestination} selectedPlaces={selectedPlaces} />
       )}
 
-      {/* Budget Calculator Tab */}
       {plannerTab === 'budget' && (
         <BudgetCalculator
           destination={currentDestination}
@@ -359,7 +327,6 @@ export default function Planner({ destination, user, onSaveSuccess, onOpenAuth }
         />
       )}
 
-      {/* Weather & Safety Tab */}
       {plannerTab === 'weather' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <WeatherWidget destination={currentDestination} />

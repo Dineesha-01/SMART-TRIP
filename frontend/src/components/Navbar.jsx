@@ -1,20 +1,23 @@
 import React from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { Compass, MapPin, BookmarkCheck, User, LogOut, LogIn, ShieldCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from './LanguageSelector';
 
 export default function Navbar({ user, onLogout }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const isAdminUser = user?.role === 'ROLE_SUPER_ADMIN' || user?.role === 'ROLE_ADMIN' || user?.email === 'smarttrip@gmail.com';
 
   const navItems = [
-    { path: '/',         label: 'Home',           icon: <Compass size={15} /> },
-    { path: '/planner',  label: 'Trip Planner',   icon: <MapPin size={15} /> },
-    { path: '/trips',    label: 'My Saved Trips', icon: <BookmarkCheck size={15} /> },
+    { path: '/',         label: t('nav.home'),    icon: <Compass size={15} /> },
+    { path: '/planner',  label: t('nav.planner'), icon: <MapPin size={15} /> },
+    { path: '/trips',    label: t('nav.trips'),   icon: <BookmarkCheck size={15} /> },
   ];
 
   if (isAdminUser) {
-    navItems.push({ path: '/admin', label: 'Admin Dashboard', icon: <ShieldCheck size={15} /> });
+    navItems.push({ path: '/admin', label: t('nav.admin'), icon: <ShieldCheck size={15} /> });
   }
 
   return (
@@ -85,6 +88,7 @@ export default function Navbar({ user, onLogout }) {
 
         {/* User Account Section */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <LanguageSelector />
           {user ? (
             <>
               <button
@@ -114,7 +118,7 @@ export default function Navbar({ user, onLogout }) {
               </button>
               <button
                 onClick={onLogout}
-                title="Sign Out"
+                title={t('nav.signOut')}
                 className="btn btn-danger btn-sm"
                 style={{ padding: '0.4rem 0.6rem' }}
               >
@@ -127,7 +131,7 @@ export default function Navbar({ user, onLogout }) {
               className="btn btn-primary btn-sm"
               style={{ gap: '0.4rem' }}
             >
-              <LogIn size={15} /> Sign In
+              <LogIn size={15} /> {t('nav.signIn')}
             </button>
           )}
         </div>

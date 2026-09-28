@@ -32,7 +32,6 @@ function PasswordInput({ value, onChange, placeholder, name }) {
   );
 }
 
-/* Password Strength Meter & Live Checklist */
 function PasswordStrengthMeter({ password }) {
   if (!password) return null;
 
@@ -54,7 +53,6 @@ function PasswordStrengthMeter({ password }) {
 
   return (
     <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-      {/* Strength Progress Bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.72rem', fontWeight: 700, color: strength.color }}>
         <span>Password Strength:</span>
         <span>{strength.text}</span>
@@ -64,7 +62,6 @@ function PasswordStrengthMeter({ password }) {
         <div style={{ width: `${strength.percent}%`, height: '100%', background: strength.color, transition: 'all 0.3s ease' }} />
       </div>
 
-      {/* Criteria Checklist */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem', marginTop: '0.25rem', fontSize: '0.7rem' }}>
         <div style={{ color: hasLength ? '#10b981' : '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
           {hasLength ? <CheckCircle2 size={12} /> : <XCircle size={12} />} At least 6 chars
@@ -152,6 +149,13 @@ export default function Auth({ onLoginSuccess, onNavigateHome }) {
   const validateReg = () => {
     const e = {};
     if (!reg.name.trim()) e.name = 'Full name is required';
+    if (!reg.username.trim()) {
+      e.username = 'Username is required';
+    } else if (reg.username.trim().length < 3) {
+      e.username = 'Username must be at least 3 characters';
+    } else if (!/^[a-zA-Z0-9_.]+$/.test(reg.username.trim())) {
+      e.username = 'Only letters, numbers, underscores and dots allowed';
+    }
     if (!reg.email.trim() || !reg.email.includes('@')) e.email = 'Please enter a valid email address';
 
     if (!reg.password) {
@@ -194,7 +198,6 @@ export default function Auth({ onLoginSuccess, onNavigateHome }) {
         toast.error('Sign in failed', msg);
         setLoading(false); return;
       } else {
-        // Matching login with full profile details
         if (login.usernameOrEmail === 'smarttrip@gmail.com') {
           userData = { userId: 'usr_super_admin_001', id: 'usr_super_admin_001', token: 'jwt_sa', name: 'Super Admin', email: 'smarttrip@gmail.com', role: 'ROLE_SUPER_ADMIN', phone: '+91 99999 00000', homeCity: 'New Delhi, India' };
         } else if (login.usernameOrEmail === 'admin@smarttrip.com') {
@@ -250,13 +253,12 @@ export default function Auth({ onLoginSuccess, onNavigateHome }) {
         toast.error('Registration failed', msg);
         setLoading(false); return;
       } else {
-        userData = { userId: 'usr_new_' + Date.now(), token: 'jwt_new_' + Date.now(), name: reg.name, username: reg.username || reg.email.split('@')[0], email: reg.email, phone: reg.phone || '+91 98765 43210', homeCity: 'India', role: 'ROLE_TRAVELLER' };
+        userData = { userId: 'usr_new_' + Date.now(), token: 'jwt_new_' + Date.now(), name: reg.name, username: reg.username, email: reg.email, phone: reg.phone || '+91 98765 43210', homeCity: 'India', role: 'ROLE_TRAVELLER' };
       }
-
 
       try {
         const existing = JSON.parse(localStorage.getItem('smarttrip_registered_users') || '[]');
-        const newUser = { id: userData.userId, name: userData.name || reg.name, email: userData.email || reg.email, username: userData.username, role: 'ROLE_TRAVELLER', phone: reg.phone || '', homeCity: 'India', isBlocked: false };
+        const newUser = { id: userData.userId, name: userData.name || reg.name, email: userData.email || reg.email, username: userData.username || reg.username, role: 'ROLE_TRAVELLER', phone: reg.phone || '', homeCity: 'India', isBlocked: false };
         localStorage.setItem('smarttrip_registered_users', JSON.stringify([...existing.filter(u => u.email !== newUser.email), newUser]));
       } catch { /* ignore */ }
 
@@ -308,14 +310,12 @@ export default function Auth({ onLoginSuccess, onNavigateHome }) {
         border: '1px solid var(--border-light)',
       }}>
 
-        {/* ─── Left Hero Panel ─────────────────────────────────── */}
         <div style={{
           background: 'var(--navy-900)',
           color: 'white',
           padding: '3rem 2.5rem',
           display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
         }}>
-          {/* Brand */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div style={{ width: '40px', height: '40px', background: 'var(--blue-600)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Compass size={22} color="white" />
@@ -326,7 +326,6 @@ export default function Auth({ onLoginSuccess, onNavigateHome }) {
             </div>
           </div>
 
-          {/* Headline */}
           <div style={{ margin: '3rem 0 2rem' }}>
             <h1 style={{ fontSize: '1.85rem', fontWeight: 800, lineHeight: 1.25, letterSpacing: '-0.03em', color: 'white', marginBottom: '1rem' }}>
               Plan smarter trips across India & the world
@@ -336,7 +335,6 @@ export default function Auth({ onLoginSuccess, onNavigateHome }) {
             </p>
           </div>
 
-          {/* Subtext */}
           <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
             <p style={{ fontSize: '0.82rem', color: '#94a3b8', lineHeight: 1.6 }}>
               Access your personalized trip planner, saved itineraries, and travel management controls securely.
@@ -344,10 +342,8 @@ export default function Auth({ onLoginSuccess, onNavigateHome }) {
           </div>
         </div>
 
-        {/* ─── Right Form Panel ─────────────────────────────────── */}
         <div style={{ background: 'white', padding: '2.5rem 2.25rem', display: 'flex', flexDirection: 'column' }}>
 
-          {/* Tab Switcher */}
           {tab !== 'forgot' && (
             <div style={{ display: 'flex', background: 'var(--surface-1)', borderRadius: '10px', padding: '4px', marginBottom: '1.5rem' }}>
               {['login', 'register'].map(t => (
@@ -369,7 +365,6 @@ export default function Auth({ onLoginSuccess, onNavigateHome }) {
             </div>
           )}
 
-          {/* Form Top Alert Message Banner */}
           {serverErrorMsg && (
             <div style={{
               background: '#fef2f2', border: '1px solid #fca5a5',
@@ -382,7 +377,6 @@ export default function Auth({ onLoginSuccess, onNavigateHome }) {
             </div>
           )}
 
-          {/* ── Sign In Form ─────────────────── */}
           {tab === 'login' && (
             <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem', flex: 1 }}>
               <div>
@@ -429,7 +423,6 @@ export default function Auth({ onLoginSuccess, onNavigateHome }) {
             </form>
           )}
 
-          {/* ── Register Form ─────────────────── */}
           {tab === 'register' && (
             <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '0.95rem', flex: 1 }}>
               <div>
@@ -457,6 +450,22 @@ export default function Auth({ onLoginSuccess, onNavigateHome }) {
               </div>
 
               <div>
+                <label className="form-label">Username</label>
+                <div style={{ position: 'relative' }}>
+                  <User size={15} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', pointerEvents: 'none' }} />
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Choose a unique username"
+                    value={reg.username}
+                    onChange={e => { setReg({ ...reg, username: e.target.value.trim() }); setRegErr({ ...regErr, username: '' }); }}
+                    style={{ paddingLeft: '2.4rem' }}
+                  />
+                </div>
+                {regErr.username && <p style={{ fontSize: '0.72rem', color: 'var(--red-600)', marginTop: '0.25rem' }}>{regErr.username}</p>}
+              </div>
+
+              <div>
                 <label className="form-label">Email Address</label>
                 <div style={{ position: 'relative' }}>
                   <Mail size={15} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', pointerEvents: 'none' }} />
@@ -468,10 +477,7 @@ export default function Auth({ onLoginSuccess, onNavigateHome }) {
               <div>
                 <label className="form-label">Password</label>
                 <PasswordInput name="password" placeholder="Min 6 chars (e.g. Pass@123)" value={reg.password} onChange={e => setReg({ ...reg, password: e.target.value })} />
-
-                {/* Live Password Strength Meter */}
                 <PasswordStrengthMeter password={reg.password} />
-
                 {regErr.password && <p style={{ fontSize: '0.72rem', color: 'var(--red-600)', marginTop: '0.25rem' }}>{regErr.password}</p>}
               </div>
 
@@ -490,7 +496,6 @@ export default function Auth({ onLoginSuccess, onNavigateHome }) {
             </form>
           )}
 
-          {/* ── Forgot Password Form ────────── */}
           {tab === 'forgot' && (
             <form onSubmit={handleForgot} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem', flex: 1 }}>
               <div>

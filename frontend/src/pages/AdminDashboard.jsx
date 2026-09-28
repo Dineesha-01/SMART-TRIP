@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ShieldCheck, Users, Activity, Crown, UserCheck, Lock, Unlock, UserPlus, X, Check, MapPin, Plus, Trash2, Building2 } from 'lucide-react';
 import { useToast } from '../components/Toast';
 
 export default function AdminDashboard({ user }) {
+  const { t } = useTranslation();
   const [stats, setStats] = useState({ totalUsers: 3, totalTrips: 1, superAdminCount: 1, adminCount: 1, travellerCount: 1 });
   const [usersList, setUsersList] = useState([]);
   const [tripsList, setTripsList] = useState([]);
@@ -10,7 +12,6 @@ export default function AdminDashboard({ user }) {
   const [activeTab, setActiveTab] = useState('users');
   const [loading, setLoading] = useState(true);
 
-  // Add Admin Modal State
   const [showAddAdminModal, setShowAddAdminModal] = useState(false);
   const [newAdminName, setNewAdminName] = useState('');
   const [newAdminEmail, setNewAdminEmail] = useState('');
@@ -18,7 +19,6 @@ export default function AdminDashboard({ user }) {
   const [newAdminPhone, setNewAdminPhone] = useState('');
   const [addingAdmin, setAddingAdmin] = useState(false);
 
-  // Add Place / Location Modal State
   const [showAddPlaceModal, setShowAddPlaceModal] = useState(false);
   const [newPlace, setNewPlace] = useState({
     name: '',
@@ -44,33 +44,28 @@ export default function AdminDashboard({ user }) {
   const fetchAdminData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch system stats
       const statsRes = await fetch('http://localhost:8080/api/v1/admin/stats').catch(() => null);
       if (statsRes && statsRes.ok) {
         const statsData = await statsRes.json();
         setStats(statsData);
       }
 
-      // 2. Fetch users from Backend MongoDB API
       let apiUsers = [];
       const usersRes = await fetch('http://localhost:8080/api/v1/admin/users').catch(() => null);
       if (usersRes && usersRes.ok) {
         apiUsers = await usersRes.json();
       }
 
-      // 3. Retrieve local registered users backup
       let localUsers = [];
       try {
         localUsers = JSON.parse(localStorage.getItem('smarttrip_registered_users') || '[]');
       } catch { /* ignore */ }
 
-      // 4. Default Seeded Accounts
       const defaultUsers = [
         { id: 'usr_super_admin_001', name: 'Super Admin', email: 'smarttrip@gmail.com', role: 'ROLE_SUPER_ADMIN', homeCity: 'New Delhi, India', phone: '+91 99999 00000', isBlocked: false },
         { id: 'usr_admin_002', name: 'Admin Employee', email: 'admin@smarttrip.com', role: 'ROLE_ADMIN', homeCity: 'Mumbai, India', phone: '+91 88888 11111', isBlocked: false },
       ];
 
-      // Merge and deduplicate by email
       const userMap = new Map();
       [...defaultUsers, ...localUsers, ...apiUsers].forEach((u) => {
         if (u && u.email) {
@@ -78,10 +73,8 @@ export default function AdminDashboard({ user }) {
         }
       });
 
-      const mergedList = Array.from(userMap.values());
-      setUsersList(mergedList);
+      setUsersList(Array.from(userMap.values()));
 
-      // 5. Fetch trips
       const tripsRes = await fetch('http://localhost:8080/api/v1/admin/trips').catch(() => null);
       if (tripsRes && tripsRes.ok) {
         const tripsData = await tripsRes.json();
@@ -101,7 +94,6 @@ export default function AdminDashboard({ user }) {
 
   const fetchPlacesData = async () => {
     try {
-      // Fetch all stored places from MongoDB
       const res = await fetch('http://localhost:8080/api/v1/places/all').catch(() => null);
       if (res && res.ok) {
         const data = await res.json();
@@ -111,7 +103,6 @@ export default function AdminDashboard({ user }) {
         }
       }
 
-      // Fallback: fetch nearby places for Jaipur & Agra
       const resJaipur = await fetch('http://localhost:8080/api/v1/places/nearby?destination=Jaipur').catch(() => null);
       let list = [];
       if (resJaipur && resJaipur.ok) {
@@ -155,7 +146,7 @@ export default function AdminDashboard({ user }) {
         localStorage.setItem('smarttrip_registered_users', JSON.stringify([...existing, newAdminObj]));
       } catch { /* ignore */ }
 
-      if (toast) toast.success('Admin Created!', `Employee Admin "${newAdminName}" created successfully.`);
+      if (toast) toast.success(t('admin.toastAdminCreatedTitle'), t('admin.toastAdminCreatedMsg', { name: newAdminName }));
       setShowAddAdminModal(false);
       setNewAdminName('');
       setNewAdminEmail('');
@@ -163,7 +154,7 @@ export default function AdminDashboard({ user }) {
       setNewAdminPhone('');
       fetchAdminData();
     } catch (err) {
-      if (toast) toast.error('Error', err.message);
+      if (toast) toast.error(t('admin.toastErrorTitle'), err.message);
     } finally {
       setAddingAdmin(false);
     }
@@ -195,7 +186,7 @@ export default function AdminDashboard({ user }) {
       }
 
       setPlacesList((prev) => [savedObj, ...prev]);
-      if (toast) toast.success('Place Added!', `"${savedObj.name}" added to MongoDB database for ${savedObj.destination}.`);
+      if (toast) toast.success(t('admin.toastPlaceAddedTitle'), t('admin.toastPlaceAddedMsg', { name: savedObj.name, destination: savedObj.destination }));
       setShowAddPlaceModal(false);
       setNewPlace({
         name: '',
@@ -208,7 +199,7 @@ export default function AdminDashboard({ user }) {
         imageUrl: '',
       });
     } catch (err) {
-      if (toast) toast.error('Error', 'Unable to save place to database.');
+      if (toast) toast.error(t('admin.toastErrorTitle'), t('admin.toastPlaceSaveErrorMsg'));
     } finally {
       setAddingPlace(false);
     }
@@ -221,7 +212,7 @@ export default function AdminDashboard({ user }) {
       }).catch(() => null);
 
       setPlacesList((prev) => prev.filter((p) => p.id !== placeId));
-      if (toast) toast.success('Place Deleted', `"${placeName}" removed from database.`);
+      if (toast) toast.success(t('admin.toastPlaceDeletedTitle'), t('admin.toastPlaceDeletedMsg', { name: placeName }));
     } catch {
       setPlacesList((prev) => prev.filter((p) => p.id !== placeId));
     }
@@ -229,7 +220,7 @@ export default function AdminDashboard({ user }) {
 
   const handleToggleBlock = async (targetUser) => {
     if (targetUser.role === 'ROLE_SUPER_ADMIN') {
-      if (toast) toast.error('Action Restricted', 'Super Admin account cannot be blocked.');
+      if (toast) toast.error(t('admin.toastActionRestrictedTitle'), t('admin.toastActionRestrictedMsg'));
       return;
     }
 
@@ -251,9 +242,9 @@ export default function AdminDashboard({ user }) {
       const nextState = !targetUser.isBlocked;
       if (toast) {
         if (nextState) {
-          toast.error('User Blocked', `Account "${targetUser.name}" has been suspended.`);
+          toast.error(t('admin.toastUserBlockedTitle'), t('admin.toastUserBlockedMsg', { name: targetUser.name }));
         } else {
-          toast.success('User Unblocked', `Account "${targetUser.name}" access has been restored.`);
+          toast.success(t('admin.toastUserUnblockedTitle'), t('admin.toastUserUnblockedMsg', { name: targetUser.name }));
         }
       }
     } catch {
@@ -271,25 +262,22 @@ export default function AdminDashboard({ user }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
             <div style={{
-              width: '46px', height: '46px',
-              background: 'var(--blue-600)',
-              borderRadius: 'var(--r-md)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'white', flexShrink: 0,
+              width: '46px', height: '46px', background: 'var(--blue-600)', borderRadius: 'var(--r-md)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0,
             }}>
               {isSuperAdmin ? <Crown size={24} color="#f59e0b" /> : <ShieldCheck size={24} />}
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'white' }}>
-                  {isSuperAdmin ? 'Super Admin System Control Panel' : 'Employee Admin Dashboard'}
+                  {isSuperAdmin ? t('admin.superAdminTitle') : t('admin.adminTitle')}
                 </h1>
                 <span className="badge badge-gold" style={{ fontSize: '0.7rem' }}>
                   {user?.role || (isSuperAdmin ? 'ROLE_SUPER_ADMIN' : 'ROLE_ADMIN')}
                 </span>
               </div>
               <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: '2px' }}>
-                Logged in as: <strong>{user?.email || 'smarttrip@gmail.com'}</strong>
+                {t('admin.loggedInAs')} <strong>{user?.email || 'smarttrip@gmail.com'}</strong>
               </p>
             </div>
           </div>
@@ -300,7 +288,7 @@ export default function AdminDashboard({ user }) {
               className="btn btn-success"
               style={{ gap: '0.4rem' }}
             >
-              <Plus size={16} /> + Add Destination Place / Location
+              <Plus size={16} /> {t('admin.addPlaceBtn')}
             </button>
             {isSuperAdmin && (
               <button
@@ -308,11 +296,11 @@ export default function AdminDashboard({ user }) {
                 className="btn btn-gold"
                 style={{ gap: '0.4rem' }}
               >
-                <UserPlus size={16} /> + Add New Admin Employee
+                <UserPlus size={16} /> {t('admin.addAdminBtn')}
               </button>
             )}
             <button onClick={() => { fetchAdminData(); fetchPlacesData(); }} className="btn btn-outline" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.3)' }}>
-              Refresh Data
+              {t('admin.refreshData')}
             </button>
           </div>
         </div>
@@ -322,7 +310,7 @@ export default function AdminDashboard({ user }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
         <div className="card-elevated" style={{ padding: '1.25rem', background: 'white' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>Total Registered Users</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>{t('admin.statTotalUsers')}</span>
             <Users size={18} color="var(--blue-600)" />
           </div>
           <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--navy-900)', marginTop: '0.3rem' }}>
@@ -332,7 +320,7 @@ export default function AdminDashboard({ user }) {
 
         <div className="card-elevated" style={{ padding: '1.25rem', background: 'white' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>Managed Places & Locations</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>{t('admin.statManagedPlaces')}</span>
             <MapPin size={18} color="var(--blue-600)" />
           </div>
           <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--blue-600)', marginTop: '0.3rem' }}>
@@ -342,7 +330,7 @@ export default function AdminDashboard({ user }) {
 
         <div className="card-elevated" style={{ padding: '1.25rem', background: 'white' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>Total Trips & Activities</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>{t('admin.statTotalTrips')}</span>
             <Activity size={18} color="var(--emerald-600)" />
           </div>
           <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--emerald-600)', marginTop: '0.3rem' }}>
@@ -352,7 +340,7 @@ export default function AdminDashboard({ user }) {
 
         <div className="card-elevated" style={{ padding: '1.25rem', background: 'white' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>Super Admins / Admins</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>{t('admin.statSuperAdmins')}</span>
             <Crown size={18} color="var(--amber-600)" />
           </div>
           <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--amber-600)', marginTop: '0.3rem' }}>
@@ -367,14 +355,14 @@ export default function AdminDashboard({ user }) {
           onClick={() => setActiveTab('users')}
           className={`tab-item${activeTab === 'users' ? ' active-blue' : ''}`}
         >
-          <Users size={15} /> All Users & Access Controls ({usersList.length})
+          <Users size={15} /> {t('admin.tabUsers', { count: usersList.length })}
         </button>
 
         <button
           onClick={() => setActiveTab('places')}
           className={`tab-item${activeTab === 'places' ? ' active-blue' : ''}`}
         >
-          <MapPin size={15} /> Places & Locations Management ({placesList.length})
+          <MapPin size={15} /> {t('admin.tabPlaces', { count: placesList.length })}
         </button>
 
         {isSuperAdmin && (
@@ -382,27 +370,27 @@ export default function AdminDashboard({ user }) {
             onClick={() => setActiveTab('trips')}
             className={`tab-item${activeTab === 'trips' ? ' active-blue' : ''}`}
           >
-            <Activity size={15} /> All User Travel Activities ({tripsList.length})
+            <Activity size={15} /> {t('admin.tabTrips', { count: tripsList.length })}
           </button>
         )}
       </div>
 
-      {/* ─── Tab 1: All Users ───────────────────────────── */}
+      {/* Tab 1: All Users */}
       {activeTab === 'users' && (
         <div className="card-elevated" style={{ padding: '1.5rem', background: 'white' }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '1rem' }}>
-            User Management & Access Control ({usersList.length} Total Accounts)
+            {t('admin.userMgmtTitle', { count: usersList.length })}
           </h3>
 
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ background: 'var(--surface-1)', borderBottom: '2px solid var(--border-medium)' }}>
-                  <th style={{ padding: '0.75rem 1rem' }}>User Name</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Email Address</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Role</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Access Status</th>
-                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('admin.thUserName')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('admin.thEmail')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('admin.thRole')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('admin.thAccessStatus')}</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>{t('admin.thActions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -418,11 +406,11 @@ export default function AdminDashboard({ user }) {
                     <td style={{ padding: '0.85rem 1rem' }}>
                       {u.isBlocked ? (
                         <span className="badge badge-red" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                          <Lock size={12} /> Suspended / Blocked
+                          <Lock size={12} /> {t('admin.suspended')}
                         </span>
                       ) : (
                         <span className="badge badge-green" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                          <Unlock size={12} /> Active Access
+                          <Unlock size={12} /> {t('admin.activeAccess')}
                         </span>
                       )}
                     </td>
@@ -434,7 +422,7 @@ export default function AdminDashboard({ user }) {
                           style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem', gap: '0.3rem' }}
                         >
                           {u.isBlocked ? <Unlock size={13} /> : <Lock size={13} />}
-                          {u.isBlocked ? 'Unblock Access' : 'Block Access'}
+                          {u.isBlocked ? t('admin.unblockAccess') : t('admin.blockAccess')}
                         </button>
                       )}
                     </td>
@@ -446,16 +434,16 @@ export default function AdminDashboard({ user }) {
         </div>
       )}
 
-      {/* ─── Tab 2: Places & Locations ──────────────────── */}
+      {/* Tab 2: Places & Locations */}
       {activeTab === 'places' && (
         <div className="card-elevated" style={{ padding: '1.5rem', background: 'white' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
             <div>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--navy-900)' }}>
-                Destination Places & Locations ({placesList.length} Entries)
+                {t('admin.placesTitle', { count: placesList.length })}
               </h3>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-                All locations stored in MongoDB. Admins can insert new attractions, hotels, restaurants, ATMs, and emergency services.
+                {t('admin.placesDesc')}
               </p>
             </div>
             <button
@@ -463,7 +451,7 @@ export default function AdminDashboard({ user }) {
               className="btn btn-primary"
               style={{ gap: '0.4rem' }}
             >
-              <Plus size={15} /> Add New Place
+              <Plus size={15} /> {t('admin.addNewPlace')}
             </button>
           </div>
 
@@ -471,13 +459,13 @@ export default function AdminDashboard({ user }) {
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ background: 'var(--surface-1)', borderBottom: '2px solid var(--border-medium)' }}>
-                  <th style={{ padding: '0.75rem 1rem' }}>Image</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Place Name</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Destination</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Category</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Rating</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Price Level</th>
-                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('admin.thImage')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('admin.thPlaceName')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('admin.thDestination')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('admin.thCategory')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('admin.thRating')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('admin.thPriceLevel')}</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>{t('admin.thActions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -510,7 +498,7 @@ export default function AdminDashboard({ user }) {
                         className="btn btn-danger btn-sm"
                         style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem', gap: '0.3rem' }}
                       >
-                        <Trash2 size={13} /> Delete
+                        <Trash2 size={13} /> {t('admin.delete')}
                       </button>
                     </td>
                   </tr>
@@ -521,37 +509,37 @@ export default function AdminDashboard({ user }) {
         </div>
       )}
 
-      {/* ─── Tab 3: All Trips Activity (Super Admin Only) ────── */}
+      {/* Tab 3: All Trips Activity (Super Admin Only) */}
       {activeTab === 'trips' && isSuperAdmin && (
         <div className="card-elevated" style={{ padding: '1.5rem', background: 'white' }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '1rem' }}>
-            System-Wide Travel Activities & Booked Trips
+            {t('admin.tripsActivityTitle')}
           </h3>
 
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ background: 'var(--surface-1)', borderBottom: '2px solid var(--border-medium)' }}>
-                  <th style={{ padding: '0.75rem 1rem' }}>Trip Title</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Destination</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>User ID</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Duration</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Est. Cost (₹)</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Status</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('admin.thTripTitle')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('admin.thDestination')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('admin.thUserId')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('admin.thDuration')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('admin.thEstCost')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('admin.thStatus')}</th>
                 </tr>
               </thead>
               <tbody>
-                {tripsList.map((t) => (
-                  <tr key={t.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                    <td style={{ padding: '0.85rem 1rem', fontWeight: 700 }}>{t.title}</td>
-                    <td style={{ padding: '0.85rem 1rem', color: 'var(--blue-600)', fontWeight: 600 }}>{t.destination}</td>
-                    <td style={{ padding: '0.85rem 1rem', color: 'var(--text-tertiary)' }}>{t.userId}</td>
-                    <td style={{ padding: '0.85rem 1rem' }}>{t.durationDays} Days</td>
+                {tripsList.map((tr) => (
+                  <tr key={tr.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
+                    <td style={{ padding: '0.85rem 1rem', fontWeight: 700 }}>{tr.title}</td>
+                    <td style={{ padding: '0.85rem 1rem', color: 'var(--blue-600)', fontWeight: 600 }}>{tr.destination}</td>
+                    <td style={{ padding: '0.85rem 1rem', color: 'var(--text-tertiary)' }}>{tr.userId}</td>
+                    <td style={{ padding: '0.85rem 1rem' }}>{t('admin.daysUnit', { days: tr.durationDays })}</td>
                     <td style={{ padding: '0.85rem 1rem', fontWeight: 800, color: 'var(--emerald-600)' }}>
-                      ₹{t.estimatedCost?.toLocaleString('en-IN') || '21,200'} INR
+                      ₹{tr.estimatedCost?.toLocaleString('en-IN') || '21,200'} INR
                     </td>
                     <td style={{ padding: '0.85rem 1rem' }}>
-                      <span className="badge badge-blue">{t.status || 'PLANNED'}</span>
+                      <span className="badge badge-blue">{tr.status || 'PLANNED'}</span>
                     </td>
                   </tr>
                 ))}
@@ -561,7 +549,7 @@ export default function AdminDashboard({ user }) {
         </div>
       )}
 
-      {/* ─── Modal 1: Add Admin Employee ─────────────────── */}
+      {/* Modal 1: Add Admin Employee */}
       {showAddAdminModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -572,7 +560,7 @@ export default function AdminDashboard({ user }) {
           <div className="card-elevated" style={{ width: '100%', maxWidth: '440px', background: 'white', padding: '1.75rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <UserPlus size={20} color="var(--blue-600)" /> Add New Employee Admin
+                <UserPlus size={20} color="var(--blue-600)" /> {t('admin.addAdminModalTitle')}
               </h3>
               <button onClick={() => setShowAddAdminModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
                 <X size={18} color="var(--text-tertiary)" />
@@ -581,7 +569,7 @@ export default function AdminDashboard({ user }) {
 
             <form onSubmit={handleCreateAdmin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label className="form-label">Employee Full Name:</label>
+                <label className="form-label">{t('admin.employeeName')}</label>
                 <input
                   type="text"
                   className="input"
@@ -593,7 +581,7 @@ export default function AdminDashboard({ user }) {
               </div>
 
               <div>
-                <label className="form-label">Employee Work Email:</label>
+                <label className="form-label">{t('admin.employeeEmail')}</label>
                 <input
                   type="email"
                   className="input"
@@ -605,7 +593,7 @@ export default function AdminDashboard({ user }) {
               </div>
 
               <div>
-                <label className="form-label">Password:</label>
+                <label className="form-label">{t('admin.password')}</label>
                 <input
                   type="password"
                   className="input"
@@ -617,7 +605,7 @@ export default function AdminDashboard({ user }) {
               </div>
 
               <div>
-                <label className="form-label">Phone Number:</label>
+                <label className="form-label">{t('admin.phoneNumber')}</label>
                 <input
                   type="text"
                   className="input"
@@ -629,10 +617,10 @@ export default function AdminDashboard({ user }) {
 
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                 <button type="button" onClick={() => setShowAddAdminModal(false)} className="btn btn-ghost" style={{ flex: 1 }}>
-                  Cancel
+                  {t('admin.cancel')}
                 </button>
                 <button type="submit" disabled={addingAdmin} className="btn btn-primary" style={{ flex: 1 }}>
-                  {addingAdmin ? 'Creating...' : 'Create Admin'}
+                  {addingAdmin ? t('admin.creating') : t('admin.createAdmin')}
                 </button>
               </div>
             </form>
@@ -640,7 +628,7 @@ export default function AdminDashboard({ user }) {
         </div>
       )}
 
-      {/* ─── Modal 2: Add Place / Location ───────────────── */}
+      {/* Modal 2: Add Place / Location */}
       {showAddPlaceModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -651,7 +639,7 @@ export default function AdminDashboard({ user }) {
           <div className="card-elevated" style={{ width: '100%', maxWidth: '520px', background: 'white', padding: '1.75rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <MapPin size={20} color="var(--blue-600)" /> Add New Place / Location
+                <MapPin size={20} color="var(--blue-600)" /> {t('admin.addPlaceModalTitle')}
               </h3>
               <button onClick={() => setShowAddPlaceModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
                 <X size={18} color="var(--text-tertiary)" />
@@ -660,7 +648,7 @@ export default function AdminDashboard({ user }) {
 
             <form onSubmit={handleAddPlace} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
               <div>
-                <label className="form-label">Place Name:</label>
+                <label className="form-label">{t('admin.placeName')}</label>
                 <input
                   type="text"
                   className="input"
@@ -673,7 +661,7 @@ export default function AdminDashboard({ user }) {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
-                  <label className="form-label">Destination City:</label>
+                  <label className="form-label">{t('admin.destinationCity')}</label>
                   <input
                     type="text"
                     className="input"
@@ -684,23 +672,23 @@ export default function AdminDashboard({ user }) {
                   />
                 </div>
                 <div>
-                  <label className="form-label">Category:</label>
+                  <label className="form-label">{t('admin.category')}</label>
                   <select
                     className="input"
                     value={newPlace.category}
                     onChange={(e) => setNewPlace({ ...newPlace, category: e.target.value })}
                   >
-                    <option value="Attraction">Attraction</option>
-                    <option value="Hotel">Hotel</option>
-                    <option value="Restaurant">Restaurant</option>
-                    <option value="Hospital">Hospital / Emergency</option>
-                    <option value="ATM">ATM / Banking</option>
+                    <option value="Attraction">{t('admin.categoryAttraction')}</option>
+                    <option value="Hotel">{t('admin.categoryHotel')}</option>
+                    <option value="Restaurant">{t('admin.categoryRestaurant')}</option>
+                    <option value="Hospital">{t('admin.categoryHospital')}</option>
+                    <option value="ATM">{t('admin.categoryAtm')}</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="form-label">Full Address:</label>
+                <label className="form-label">{t('admin.fullAddress')}</label>
                 <input
                   type="text"
                   className="input"
@@ -712,7 +700,7 @@ export default function AdminDashboard({ user }) {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
-                  <label className="form-label">Phone Number:</label>
+                  <label className="form-label">{t('admin.phoneNumber')}</label>
                   <input
                     type="text"
                     className="input"
@@ -722,7 +710,7 @@ export default function AdminDashboard({ user }) {
                   />
                 </div>
                 <div>
-                  <label className="form-label">Price Level / Entry:</label>
+                  <label className="form-label">{t('admin.priceLevelEntry')}</label>
                   <input
                     type="text"
                     className="input"
@@ -734,7 +722,7 @@ export default function AdminDashboard({ user }) {
               </div>
 
               <div>
-                <label className="form-label">Image URL (Unsplash or direct image link):</label>
+                <label className="form-label">{t('admin.imageUrl')}</label>
                 <input
                   type="url"
                   className="input"
@@ -746,10 +734,10 @@ export default function AdminDashboard({ user }) {
 
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                 <button type="button" onClick={() => setShowAddPlaceModal(false)} className="btn btn-ghost" style={{ flex: 1 }}>
-                  Cancel
+                  {t('admin.cancel')}
                 </button>
                 <button type="submit" disabled={addingPlace} className="btn btn-primary" style={{ flex: 1 }}>
-                  {addingPlace ? 'Saving to Database...' : 'Save to MongoDB'}
+                  {addingPlace ? t('admin.savingToDb') : t('admin.saveToMongo')}
                 </button>
               </div>
             </form>
